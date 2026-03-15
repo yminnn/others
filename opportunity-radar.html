@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Opportunity Radar - Keyword Opportunity Discovery Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg: #f6f8ff;
+      --card: #ffffff;
+      --text: #101828;
+      --muted: #667085;
+      --border: #e5e7eb;
+      --primary: #4f46e5;
+      --primary-soft: #eef2ff;
+      --accent: #7c3aed;
+      --success: #16a34a;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --shadow: 0 10px 30px rgba(79, 70, 229, 0.08);
+      --radius: 16px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(180deg, #f9faff 0%, #f4f7ff 45%, #f8f9fc 100%);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    .container {
+      width: min(1180px, 92vw);
+      margin: 0 auto;
+    }
+
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      backdrop-filter: blur(10px);
+      background: rgba(255, 255, 255, 0.86);
+      border-bottom: 1px solid rgba(229, 231, 235, 0.8);
+    }
+
+    .nav-inner {
+      height: 74px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .logo {
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-badge {
+      width: 30px;
+      height: 30px;
+      border-radius: 10px;
+      display: inline-grid;
+      place-items: center;
+      color: white;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      box-shadow: 0 6px 16px rgba(79, 70, 229, 0.3);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 22px;
+      color: var(--muted);
+      font-weight: 500;
+      flex: 1;
+      justify-content: center;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      color: inherit;
+      transition: color .2s ease;
+    }
+
+    .nav-links a:hover { color: var(--primary); }
+
+    .btn {
+      border: none;
+      border-radius: 12px;
+      padding: 10px 16px;
+      font-weight: 600;
+      font-size: .92rem;
+      cursor: pointer;
+      transition: all .22s ease;
+    }
+
+    .btn:hover { transform: translateY(-1px); }
+    .btn-ghost {
+      background: white;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .btn-ghost:hover { border-color: #c7cdfa; color: var(--primary); }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: white;
+      box-shadow: 0 8px 16px rgba(79, 70, 229, .25);
+    }
+
+    .btn-primary:hover { filter: brightness(1.04); }
+
+    section { padding: 40px 0; }
+
+    .hero {
+      padding-top: 130px;
+      padding-bottom: 56px;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap: 28px;
+      align-items: stretch;
+    }
+
+    h1 {
+      line-height: 1.15;
+      font-size: clamp(1.9rem, 3.8vw, 3rem);
+      margin: 0 0 16px;
+      letter-spacing: -0.03em;
+      max-width: 15ch;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      margin: 0 0 24px;
+      max-width: 60ch;
+    }
+
+    .btn-group { display: flex; gap: 12px; flex-wrap: wrap; }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-panel { padding: 20px; }
+
+    .mini-title {
+      font-size: .8rem;
+      color: var(--muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .keyword-title {
+      margin: 12px 0 8px;
+      font-size: 1.3rem;
+      font-weight: 700;
+    }
+
+    .trend-up {
+      color: var(--success);
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .score-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--primary-soft);
+      color: var(--primary);
+      border: 1px solid #dbe4ff;
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-weight: 600;
+      font-size: .82rem;
+      margin-top: 14px;
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+
+    .stat-card {
+      padding: 18px;
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 14px 28px rgba(31, 41, 55, 0.09);
+    }
+
+    .stat-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--muted);
+      font-size: .9rem;
+    }
+
+    .stat-value {
+      margin: 8px 0;
+      font-size: 1.7rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .delta { color: var(--success); font-weight: 600; font-size: .87rem; }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+
+    .section-head h2 { margin: 0; letter-spacing: -0.02em; }
+
+    .filters {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(130px, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .filter {
+      border: 1px solid var(--border);
+      background: white;
+      color: #344054;
+      border-radius: 10px;
+      padding: 9px 12px;
+      font-size: .86rem;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all .2s ease;
+    }
+
+    .filter.active, .filter:hover {
+      border-color: #c7cdfa;
+      color: var(--primary);
+      background: #f8f9ff;
+    }
+
+    .table-wrap { overflow-x: auto; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 980px;
+      background: white;
+      border-radius: 14px;
+      overflow: hidden;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 12px 14px;
+      border-bottom: 1px solid #edf0f5;
+      font-size: .9rem;
+      vertical-align: middle;
+    }
+
+    th {
+      color: #475467;
+      background: #fbfcff;
+      font-size: .78rem;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+
+    tr:hover td { background: #fcfdff; }
+
+    .tag {
+      font-size: .76rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid;
+      display: inline-flex;
+      align-items: center;
+      white-space: nowrap;
+    }
+
+    .t-green { color: #15803d; background: #effdf3; border-color: #bbf7d0; }
+    .t-yellow { color: #a16207; background: #fffbeb; border-color: #fde68a; }
+    .t-red { color: #b91c1c; background: #fef2f2; border-color: #fecaca; }
+    .t-indigo { color: #3730a3; background: #eef2ff; border-color: #c7d2fe; }
+
+    .score-chip {
+      font-weight: 700;
+      font-size: .8rem;
+      border-radius: 8px;
+      padding: 3px 8px;
+      color: white;
+      display: inline-block;
+      min-width: 42px;
+      text-align: center;
+    }
+    .score-high { background: linear-gradient(135deg, #4f46e5, #7c3aed); }
+    .score-mid { background: #2563eb; }
+
+    .trend-grid {
+      display: grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 16px;
+    }
+
+    .chart-card, .insight-card, .deep-dive, .sop-grid .card, .alert-grid .card { padding: 18px; }
+
+    .insight-list {
+      list-style: none;
+      margin: 10px 0 0;
+      padding: 0;
+      display: grid;
+      gap: 10px;
+    }
+
+    .insight-list li {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .deep-split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(120px, 1fr));
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .meta-box {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px;
+      background: #fcfdff;
+    }
+
+    .long-tail {
+      margin: 10px 0;
+      padding-left: 18px;
+      color: #475467;
+    }
+
+    .rating {
+      display: grid;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .bar {
+      background: #edf2ff;
+      border-radius: 999px;
+      height: 9px;
+      overflow: hidden;
+    }
+
+    .bar > span {
+      display: block;
+      height: 100%;
+      background: linear-gradient(90deg, #6366f1, #8b5cf6);
+    }
+
+    .sop-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+
+    .step-num {
+      width: 30px;
+      height: 30px;
+      border-radius: 10px;
+      background: #eef2ff;
+      color: var(--primary);
+      display: inline-grid;
+      place-items: center;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .alert-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .alert-item {
+      border-left: 3px solid #c7d2fe;
+      padding: 8px 12px;
+      background: #fafbff;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      color: #475467;
+    }
+
+    .subscribe {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .input {
+      flex: 1;
+      min-width: 180px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 11px 12px;
+      font-size: .92rem;
+    }
+
+    footer {
+      margin-top: 30px;
+      border-top: 1px solid var(--border);
+      background: #fff;
+      padding: 30px 0;
+    }
+
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr 1fr;
+      gap: 20px;
+    }
+
+    .socials { display: flex; gap: 10px; }
+    .socials a {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      display: inline-grid;
+      place-items: center;
+      color: #475467;
+      text-decoration: none;
+    }
+
+    .back-top {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      border: none;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: white;
+      box-shadow: 0 10px 20px rgba(79, 70, 229, 0.25);
+      cursor: pointer;
+      opacity: 0;
+      pointer-events: none;
+      transition: .25s;
+    }
+
+    .back-top.show { opacity: 1; pointer-events: auto; }
+
+    @media (max-width: 1024px) {
+      .hero-grid, .trend-grid, .alert-grid, .deep-split { grid-template-columns: 1fr; }
+      .stat-grid { grid-template-columns: repeat(2, 1fr); }
+      .sop-grid { grid-template-columns: repeat(2, 1fr); }
+      .filters { grid-template-columns: repeat(2, 1fr); }
+      .nav-links { display: none; }
+    }
+
+    @media (max-width: 640px) {
+      .stat-grid, .sop-grid, .footer-grid { grid-template-columns: 1fr; }
+      .hero { padding-top: 110px; }
+      section { padding: 28px 0; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="container nav-inner">
+      <div class="logo"><span class="logo-badge"><i class="fa-solid fa-chart-line"></i></span>Opportunity Radar</div>
+      <div class="nav-links">
+        <a href="#dashboard">Dashboard</a>
+        <a href="#trends">Trends</a>
+        <a href="#reports">Reports</a>
+        <a href="#alerts">Alerts</a>
+        <a href="#pricing">Pricing</a>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button class="btn btn-ghost">Log in</button>
+        <button class="btn btn-primary">Start Free Trial</button>
+      </div>
+    </div>
+  </nav>
+
+  <main id="dashboard" class="container">
+    <section class="hero">
+      <div class="hero-grid">
+        <div>
+          <h1>Discover trending keywords worth turning into apps and websites</h1>
+          <p class="subtitle">Track hot keywords across platforms, validate demand, analyze competition, and uncover product opportunities automatically.</p>
+          <div class="btn-group">
+            <button class="btn btn-primary">Explore Opportunities</button>
+            <button class="btn btn-ghost">View Weekly Report</button>
+          </div>
+        </div>
+        <div class="card hero-panel">
+          <div class="mini-title">Live opportunity snapshot</div>
+          <div class="keyword-title">AI resume builder</div>
+          <div class="trend-up"><i class="fa-solid fa-arrow-trend-up"></i> +142% signal growth in 14 days</div>
+          <p style="color:var(--muted); margin:12px 0;">Recommended product: <strong style="color:#344054">SaaS Resume Optimization Suite</strong></p>
+          <div class="score-pill"><i class="fa-solid fa-bullseye"></i> Opportunity Score: <strong>89/100</strong></div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px;">
+            <div class="meta-box"><div class="mini-title">Demand</div><strong>92</strong></div>
+            <div class="meta-box"><div class="mini-title">Competition</div><strong>38</strong></div>
+            <div class="meta-box"><div class="mini-title">Monetization</div><strong>86</strong></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="stat-grid">
+        <div class="card stat-card">
+          <div class="stat-top"><span>Keywords tracked</span><i class="fa-solid fa-database"></i></div>
+          <div class="stat-value">18,540</div>
+          <div class="delta">+12.4% this week</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-top"><span>New opportunities this week</span><i class="fa-solid fa-sparkles"></i></div>
+          <div class="stat-value">326</div>
+          <div class="delta">+18.7% this week</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-top"><span>Low-competition ideas</span><i class="fa-solid fa-feather-pointed"></i></div>
+          <div class="stat-value">94</div>
+          <div class="delta">+7.1% this week</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-top"><span>High-monetization niches</span><i class="fa-solid fa-coins"></i></div>
+          <div class="stat-value">41</div>
+          <div class="delta">+9.6% this week</div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <h2>Top Product Opportunities</h2>
+        <span class="mini-title">Updated 12 minutes ago</span>
+      </div>
+      <div class="filters">
+        <button class="filter active">Region <i class="fa-solid fa-chevron-down"></i></button>
+        <button class="filter">Source Platform <i class="fa-solid fa-chevron-down"></i></button>
+        <button class="filter">Category <i class="fa-solid fa-chevron-down"></i></button>
+        <button class="filter">Competition Level <i class="fa-solid fa-chevron-down"></i></button>
+        <button class="filter">Product Type <i class="fa-solid fa-chevron-down"></i></button>
+      </div>
+      <div class="card table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Keyword</th><th>Category</th><th>7D Growth</th><th>Demand</th><th>Competition</th><th>Monetization</th><th>Opportunity</th><th>Recommended Product Type</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>AI resume builder</strong></td><td>Career Tech</td><td><span class="tag t-green">+64%</span></td><td><span class="score-chip score-mid">92</span></td><td><span class="score-chip" style="background:#f59e0b;">38</span></td><td><span class="score-chip score-mid">86</span></td><td><span class="score-chip score-high">89</span></td><td>SaaS + Optimization Tool</td></tr>
+            <tr><td><strong>meeting notes summarizer</strong></td><td>Productivity AI</td><td><span class="tag t-green">+57%</span></td><td><span class="score-chip score-mid">88</span></td><td><span class="score-chip" style="background:#f59e0b;">44</span></td><td><span class="score-chip score-mid">78</span></td><td><span class="score-chip score-high">84</span></td><td>Browser + Team SaaS</td></tr>
+            <tr><td><strong>budget planner for couples</strong></td><td>Personal Finance</td><td><span class="tag t-green">+71%</span></td><td><span class="score-chip score-mid">84</span></td><td><span class="score-chip" style="background:#22c55e;">29</span></td><td><span class="score-chip score-mid">74</span></td><td><span class="score-chip score-high">87</span></td><td>Mobile App</td></tr>
+            <tr><td><strong>invoice generator for freelancers</strong></td><td>Freelancer Tools</td><td><span class="tag t-yellow">+22%</span></td><td><span class="score-chip score-mid">79</span></td><td><span class="score-chip" style="background:#f97316;">52</span></td><td><span class="score-chip score-mid">80</span></td><td><span class="score-chip score-mid">76</span></td><td>Web SaaS</td></tr>
+            <tr><td><strong>dutch speaking practice app</strong></td><td>EdTech</td><td><span class="tag t-green">+49%</span></td><td><span class="score-chip score-mid">76</span></td><td><span class="score-chip" style="background:#22c55e;">26</span></td><td><span class="score-chip score-mid">65</span></td><td><span class="score-chip score-mid">80</span></td><td>Mobile App + AI Tutor</td></tr>
+            <tr><td><strong>AI contract review</strong></td><td>Legal Tech</td><td><span class="tag t-green">+82%</span></td><td><span class="score-chip score-mid">90</span></td><td><span class="score-chip" style="background:#f97316;">58</span></td><td><span class="score-chip score-mid">91</span></td><td><span class="score-chip score-high">83</span></td><td>B2B SaaS</td></tr>
+            <tr><td><strong>student study planner</strong></td><td>Student Productivity</td><td><span class="tag t-yellow">+19%</span></td><td><span class="score-chip score-mid">74</span></td><td><span class="score-chip" style="background:#22c55e;">31</span></td><td><span class="score-chip score-mid">62</span></td><td><span class="score-chip score-mid">78</span></td><td>Cross-platform App</td></tr>
+            <tr><td><strong>SEO content brief generator</strong></td><td>Marketing AI</td><td><span class="tag t-green">+53%</span></td><td><span class="score-chip score-mid">86</span></td><td><span class="score-chip" style="background:#f59e0b;">46</span></td><td><span class="score-chip score-mid">85</span></td><td><span class="score-chip score-high">85</span></td><td>SEO SaaS</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="trends">
+      <div class="section-head"><h2>Keyword Trend Signals</h2></div>
+      <div class="trend-grid">
+        <div class="card chart-card"><canvas id="trendChart" height="140"></canvas></div>
+        <div class="card insight-card">
+          <h3 style="margin:0 0 10px;">Validation Snapshot</h3>
+          <ul class="insight-list">
+            <li><span>Cross-platform validation</span><strong>5/6 keywords verified</strong></li>
+            <li><span>Long-tail keyword count</span><strong>142 detected</strong></li>
+            <li><span>Demand stability</span><strong>High (4.4 / 5)</strong></li>
+            <li><span>Alert trigger status</span><span class="tag t-indigo">3 Active Alerts</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-head"><h2>Keyword Deep Dive</h2></div>
+      <div class="card deep-dive">
+        <h3 style="margin:0 0 8px;">AI resume builder</h3>
+        <div class="meta-grid">
+          <div class="meta-box"><strong>Category</strong><br>Career / AI Tools</div>
+          <div class="meta-box"><strong>Intent</strong><br>Tool / Transactional</div>
+          <div class="meta-box"><strong>Sources</strong><br>Google Trends, Reddit, Product Hunt</div>
+          <div class="meta-box"><strong>Trend Type</strong><br>Emerging Trend</div>
+        </div>
+        <div><strong>Long-tail Keywords</strong></div>
+        <ul class="long-tail">
+          <li>ai resume builder for students</li>
+          <li>free ai cv generator</li>
+          <li>best ai resume builder</li>
+          <li>resume optimizer ai</li>
+        </ul>
+        <div class="deep-split">
+          <div>
+            <h4 style="margin:0 0 8px;">Scoring Profile</h4>
+            <div class="rating">
+              <div>Demand Score 92<div class="bar"><span style="width:92%"></span></div></div>
+              <div>Competition Score 38<div class="bar"><span style="width:38%"></span></div></div>
+              <div>Monetization Score 86<div class="bar"><span style="width:86%"></span></div></div>
+              <div>Opportunity Score 89<div class="bar"><span style="width:89%"></span></div></div>
+            </div>
+          </div>
+          <div>
+            <h4 style="margin:0 0 8px;">Product Recommendation</h4>
+            <p style="margin:.2rem 0;"><strong>Recommended Product:</strong> SaaS + Resume Optimization Tool</p>
+            <p style="margin:.2rem 0;"><strong>Target Users:</strong> Students, job seekers, expats</p>
+            <p style="margin:.2rem 0;"><strong>MVP Features:</strong> Resume upload, AI rewriting, ATS optimization, export templates</p>
+            <p style="margin:.2rem 0;"><strong>Monetization:</strong> Freemium + monthly subscription</p>
+            <p style="margin:.2rem 0;"><strong>Risks:</strong> Competitive market, need strong positioning</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-head"><h2>How the engine works</h2></div>
+      <div class="sop-grid">
+        <div class="card"><div class="step-num">1</div><h4>Collect keywords</h4><p>Aggregate trend signals from search, social, and product communities in near real-time.</p></div>
+        <div class="card"><div class="step-num">2</div><h4>Normalize and cluster</h4><p>Clean noise, merge duplicates, and group semantically similar keyword variations.</p></div>
+        <div class="card"><div class="step-num">3</div><h4>Detect intent</h4><p>Classify informational, transactional, and tool-seeking intent for product relevance.</p></div>
+        <div class="card"><div class="step-num">4</div><h4>Validate demand</h4><p>Cross-check multi-platform momentum, consistency, and long-tail expansion patterns.</p></div>
+        <div class="card"><div class="step-num">5</div><h4>Score opportunities</h4><p>Calculate demand, competition, and monetization to form a composite opportunity score.</p></div>
+        <div class="card"><div class="step-num">6</div><h4>Recommend products</h4><p>Output product type, MVP scope, and go-to-market hints for builders and teams.</p></div>
+      </div>
+    </section>
+
+    <section id="alerts">
+      <div class="section-head"><h2>Alerts & Weekly Reports</h2></div>
+      <div class="alert-grid">
+        <div class="card">
+          <h3 style="margin-top:0;">Alert Examples</h3>
+          <div class="alert-item">“budget planner for couples” grew <strong>180%</strong> in 7 days</div>
+          <div class="alert-item">“AI contract review” appeared on <strong>4 platforms</strong></div>
+          <div class="alert-item">“dutch speaking practice app” moved into <strong>low-competition zone</strong></div>
+        </div>
+        <div class="card" id="reports">
+          <h3 style="margin-top:0;">Weekly Report CTA</h3>
+          <p style="color:var(--muted); margin:.3rem 0 .8rem;">Get curated keyword opportunities, validation insights, and product ideas delivered every week.</p>
+          <form class="subscribe" onsubmit="event.preventDefault(); alert('Thanks! Weekly opportunities will be sent to your inbox.');">
+            <input class="input" type="email" placeholder="Enter your email" required />
+            <button class="btn btn-primary" type="submit">Get Weekly Opportunities</button>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer id="pricing">
+    <div class="container footer-grid">
+      <div>
+        <div class="logo" style="margin-bottom:8px;"><span class="logo-badge"><i class="fa-solid fa-chart-line"></i></span>Opportunity Radar</div>
+        <p style="color:var(--muted); margin-top:0;">A keyword opportunity intelligence platform for indie hackers, startups, and product teams.</p>
+        <p style="color:#98a2b3; font-size:.88rem;">© 2026 Opportunity Radar. All rights reserved.</p>
+      </div>
+      <div>
+        <h4>Navigation</h4>
+        <div><a href="#dashboard">Dashboard</a></div>
+        <div><a href="#trends">Trends</a></div>
+        <div><a href="#reports">Reports</a></div>
+        <div><a href="#alerts">Alerts</a></div>
+      </div>
+      <div>
+        <h4>Follow</h4>
+        <div class="socials">
+          <a href="#" aria-label="X"><i class="fa-brands fa-x-twitter"></i></a>
+          <a href="#" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+          <a href="#" aria-label="GitHub"><i class="fa-brands fa-github"></i></a>
+          <a href="#" aria-label="Product Hunt"><i class="fa-brands fa-product-hunt"></i></a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <button class="back-top" id="backTop" aria-label="Back to top"><i class="fa-solid fa-arrow-up"></i></button>
+
+  <script>
+    const trendCtx = document.getElementById('trendChart');
+    new Chart(trendCtx, {
+      type: 'line',
+      data: {
+        labels: ['W1','W2','W3','W4','W5','W6','W7','W8','W9','W10','W11','W12'],
+        datasets: [
+          { label: 'AI resume builder', data: [22,25,27,30,33,36,41,48,56,62,70,78], borderColor: '#4f46e5', tension: .35, fill: false, borderWidth: 2 },
+          { label: 'meeting notes summarizer', data: [18,20,24,28,31,35,39,42,45,50,55,59], borderColor: '#7c3aed', tension: .35, fill: false, borderWidth: 2 },
+          { label: 'budget planner for couples', data: [9,12,15,17,22,28,31,38,44,47,51,57], borderColor: '#0ea5e9', tension: .35, fill: false, borderWidth: 2 },
+          { label: 'AI contract review', data: [14,16,19,23,28,34,40,46,55,61,66,74], borderColor: '#f43f5e', tension: .35, fill: false, borderWidth: 2 },
+          { label: 'dutch speaking practice app', data: [8,10,12,14,15,18,22,27,31,35,39,44], borderColor: '#22c55e', tension: .35, fill: false, borderWidth: 2 },
+          { label: 'SEO content brief generator', data: [12,15,18,21,24,28,33,37,42,46,52,58], borderColor: '#f59e0b', tension: .35, fill: false, borderWidth: 2 }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom', labels: { boxWidth: 12, usePointStyle: true } },
+          tooltip: { mode: 'index', intersect: false }
+        },
+        interaction: { mode: 'nearest', intersect: false },
+        scales: {
+          y: { beginAtZero: true, grid: { color: '#eef0f6' }, ticks: { color: '#667085' } },
+          x: { grid: { display: false }, ticks: { color: '#667085' } }
+        }
+      }
+    });
+
+    document.querySelectorAll('.filter').forEach(btn => {
+      btn.addEventListener('click', () => {
+        btn.classList.toggle('active');
+      });
+    });
+
+    const backTop = document.getElementById('backTop');
+    window.addEventListener('scroll', () => {
+      backTop.classList.toggle('show', window.scrollY > 500);
+    });
+    backTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+  </script>
+</body>
+</html>
