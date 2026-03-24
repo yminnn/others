@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Dashboard</h2>
+<div class="cards">
+  <article><h3>关键词总数</h3><p>{{ kpis.keyword_count }}</p></article>
+  <article><h3>平均机会分</h3><p>{{ kpis.avg_opportunity }}</p></article>
+  <article><h3>收藏机会</h3><p>{{ kpis.saved_count }}</p></article>
+  <article><h3>总搜索量</h3><p>{{ kpis.total_volume }}</p></article>
+</div>
+
+<div class="panel">
+  <h3>趋势图</h3>
+  <canvas id="trendChart" height="100"></canvas>
+</div>
+
+<div class="grid-two">
+  <div class="panel">
+    <h3>最近机会</h3>
+    <ul>{% for row in recent %}<li><a href="{{ url_for('keyword_detail', slug=row.slug) }}">{{ row.canonical_keyword }}</a> ({{ row.opportunity_score }})</li>{% endfor %}</ul>
+  </div>
+  <div class="panel">
+    <h3>低竞争机会</h3>
+    <ul>{% for row in low_comp %}<li><a href="{{ url_for('keyword_detail', slug=row.slug) }}">{{ row.canonical_keyword }}</a> ({{ row.competition_level }})</li>{% endfor %}</ul>
+  </div>
+</div>
+
+<div class="panel">
+  <h3>提醒</h3>
+  <ul>{% for item in alerts %}<li>[{{ item.severity }}] {{ item.title }} - {{ item.message }}</li>{% endfor %}</ul>
+</div>
+
+<script>
+const rows = {{ chart_rows|tojson }};
+new Chart(document.getElementById('trendChart'), {
+  type: 'line',
+  data: {
+    labels: rows.map(r => r.d),
+    datasets: [
+      { label: 'Opportunity', data: rows.map(r => r.o), borderColor: '#38bdf8' },
+      { label: 'Trend', data: rows.map(r => r.t), borderColor: '#22c55e' }
+    ]
+  }
+});
+</script>
+{% endblock %}
