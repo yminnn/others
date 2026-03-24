@@ -6,7 +6,7 @@ from functools import wraps
 from pathlib import Path
 
 from flask import Flask, g, redirect, render_template, request, session, url_for, jsonify
-from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.security import check_password_hash
 
 from services import run_ingestion_preview, utc_now_iso
 
@@ -15,10 +15,6 @@ DB_PATH = BASE_DIR / "data" / "opportunity_radar.db"
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "dev-secret-change-in-production"
-
-DEMO_EMAIL = "founder@opportunityradar.dev"
-DEMO_PASSWORD = "ChangeMe123!"
-DEMO_NAME = "Demo Founder"
 
 
 def get_db() -> sqlite3.Connection:
@@ -45,20 +41,6 @@ def login_required(view):
     return wrapped
 
 
-def ensure_demo_user(db: sqlite3.Connection) -> sqlite3.Row:
-    now = utc_now_iso()
-    db.execute(
-        """
-        INSERT INTO users(email, password_hash, name, created_at)
-        VALUES (?, ?, ?, ?)
-        ON CONFLICT(email) DO UPDATE SET password_hash=excluded.password_hash, name=excluded.name
-        """,
-        (DEMO_EMAIL, generate_password_hash(DEMO_PASSWORD), DEMO_NAME, now),
-    )
-    db.commit()
-    return db.execute("SELECT * FROM users WHERE email=?", (DEMO_EMAIL,)).fetchone()
-
-
 @app.route("/")
 def index():
     return redirect(url_for("dashboard"))
@@ -69,18 +51,12 @@ def login():
     if request.method == "POST":
         email = request.form.get("email", "").strip().lower()
         password = request.form.get("password", "")
-        db = get_db()
-        user = db.execute("SELECT * FROM users WHERE email=?", (email,)).fetchone()
-        if not user and email == DEMO_EMAIL and password == DEMO_PASSWORD:
-            user = ensure_demo_user(db)
+        user = get_db().execute("SELECT * FROM users WHERE email=?", (email,)).fetchone()
         if user and check_password_hash(user["password_hash"], password):
             session["user_id"] = user["id"]
             session["user_name"] = user["name"]
             return redirect(url_for("dashboard"))
-        return render_template(
-            "login.html",
-            error=f"账号或密码错误。请使用 Demo 账号 {DEMO_EMAIL} / {DEMO_PASSWORD}，或先运行 python init_db.py。",
-        )
+        return render_template("login.html", error="邮箱或密码错误。")
     return render_template("login.html", error=None)
 
 
