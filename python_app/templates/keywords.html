@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Keyword Explorer</h2>
+<form class="filters" method="get">
+  <input name="search" placeholder="搜索关键词" value="{{ selected.search }}" />
+  <select name="category">
+    <option value="ALL">所有分类</option>
+    {% for c in categories %}<option value="{{ c }}" {% if c==selected.category %}selected{% endif %}>{{ c }}</option>{% endfor %}
+  </select>
+  <select name="intent">
+    <option value="ALL">所有意图</option>
+    {% for i in intents %}<option value="{{ i }}" {% if i==selected.intent %}selected{% endif %}>{{ i }}</option>{% endfor %}
+  </select>
+  <select name="competition">
+    <option value="ALL">所有竞争度</option>
+    <option value="LOW" {% if selected.competition=='LOW' %}selected{% endif %}>LOW</option>
+    <option value="MEDIUM" {% if selected.competition=='MEDIUM' %}selected{% endif %}>MEDIUM</option>
+    <option value="HIGH" {% if selected.competition=='HIGH' %}selected{% endif %}>HIGH</option>
+  </select>
+  <select name="sort">
+    <option value="opportunity" {% if selected.sort=='opportunity' %}selected{% endif %}>机会分</option>
+    <option value="growth" {% if selected.sort=='growth' %}selected{% endif %}>增长</option>
+    <option value="demand" {% if selected.sort=='demand' %}selected{% endif %}>需求</option>
+    <option value="monetization" {% if selected.sort=='monetization' %}selected{% endif %}>变现</option>
+  </select>
+  <button type="submit">筛选</button>
+</form>
+
+<table>
+  <thead><tr><th>关键词</th><th>分类</th><th>意图</th><th>增长30d</th><th>需求</th><th>变现</th><th>机会分</th></tr></thead>
+  <tbody>
+    {% for row in rows %}
+    <tr>
+      <td><a href="{{ url_for('keyword_detail', slug=row.slug) }}">{{ row.canonical_keyword }}</a></td>
+      <td>{{ row.category }}</td>
+      <td>{{ row.intent }}</td>
+      <td>{{ row.growth_30d }}</td>
+      <td>{{ row.demand_score }}</td>
+      <td>{{ row.monetization_score }}</td>
+      <td><strong>{{ row.opportunity_score }}</strong></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

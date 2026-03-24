@@ -1,0 +1,273 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum KeywordCategory {
+  AI
+  PRODUCTIVITY
+  FINTECH
+  HEALTH
+  ECOMMERCE
+  MARKETING
+  DEVELOPER_TOOLS
+  ANALYTICS
+  COMMUNITY
+  OTHER
+}
+
+enum KeywordIntent {
+  INFORMATIONAL
+  TRANSACTIONAL
+  NAVIGATIONAL
+  COMMERCIAL
+  PROBLEM_AWARE
+}
+
+enum TrendType {
+  BREAKOUT
+  STEADY_GROWTH
+  SEASONAL
+  SPIKE
+  STABLE
+}
+
+enum SourcePlatform {
+  GOOGLE_TRENDS
+  REDDIT
+  PRODUCT_HUNT
+  HACKER_NEWS
+  MANUAL
+}
+
+enum CompetitionLevel {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum ProductType {
+  SAAS
+  MARKETPLACE
+  MEDIA_SITE
+  API
+  MOBILE_APP
+  BROWSER_EXTENSION
+  COMMUNITY
+}
+
+enum IngestionStatus {
+  SUCCESS
+  PARTIAL
+  FAILED
+}
+
+enum AlertSeverity {
+  INFO
+  WARNING
+  CRITICAL
+}
+
+model User {
+  id             String         @id @default(cuid())
+  name           String?
+  email          String         @unique
+  emailVerified  DateTime?
+  image          String?
+  passwordHash   String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  accounts       Account[]
+  sessions       Session[]
+  alerts         Alert[]
+  savedKeywords  SavedKeyword[]
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+}
+
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([sessionToken])
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
+}
+
+model KeywordCluster {
+  id               String                 @id @default(cuid())
+  slug             String                 @unique
+  canonicalKeyword String
+  summary          String
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+  keywords         Keyword[]
+}
+
+model Keyword {
+  id                    String                 @id @default(cuid())
+  slug                  String                 @unique
+  canonicalKeyword      String                 @unique
+  category              KeywordCategory
+  intent                KeywordIntent
+  trendType             TrendType
+  competitionLevel      CompetitionLevel
+  recommendedProductType ProductType
+  region                String
+  language              String                 @default("en")
+  description           String
+  validationCount       Int                    @default(0)
+  sourceCount           Int                    @default(0)
+  longTailCount         Int                    @default(0)
+  variantCount          Int                    @default(0)
+  trendScore            Decimal                @db.Decimal(5, 2)
+  demandScore           Decimal                @db.Decimal(5, 2)
+  competitionScore      Decimal                @db.Decimal(5, 2)
+  monetizationScore     Decimal                @db.Decimal(5, 2)
+  opportunityScore      Decimal                @db.Decimal(5, 2)
+  growth30d             Decimal                @db.Decimal(6, 2)
+  growth90d             Decimal                @db.Decimal(6, 2)
+  searchVolumeEstimate  Int
+  clusterId             String
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  cluster               KeywordCluster         @relation(fields: [clusterId], references: [id], onDelete: Cascade)
+  metrics               KeywordMetric[]
+  sourceEvents          KeywordSourceEvent[]
+  variants              KeywordVariant[]
+  recommendation        ProductRecommendation?
+  savedBy               SavedKeyword[]
+
+  @@index([category, intent, competitionLevel, recommendedProductType])
+  @@index([opportunityScore(sort: Desc)])
+}
+
+model KeywordVariant {
+  id             String   @id @default(cuid())
+  keywordId      String
+  variant        String
+  normalized     String
+  sourcePlatform SourcePlatform
+  createdAt      DateTime @default(now())
+  keyword        Keyword  @relation(fields: [keywordId], references: [id], onDelete: Cascade)
+
+  @@unique([keywordId, normalized])
+}
+
+model KeywordMetric {
+  id                String   @id @default(cuid())
+  keywordId         String
+  capturedAt        DateTime @default(now())
+  trendScore        Decimal  @db.Decimal(5, 2)
+  demandScore       Decimal  @db.Decimal(5, 2)
+  competitionScore  Decimal  @db.Decimal(5, 2)
+  monetizationScore Decimal  @db.Decimal(5, 2)
+  opportunityScore  Decimal  @db.Decimal(5, 2)
+  growthRate        Decimal  @db.Decimal(6, 2)
+  searchVolume      Int
+  validationCount   Int      @default(0)
+  keyword           Keyword  @relation(fields: [keywordId], references: [id], onDelete: Cascade)
+
+  @@index([keywordId, capturedAt])
+}
+
+model KeywordSourceEvent {
+  id             String         @id @default(cuid())
+  keywordId      String
+  sourcePlatform SourcePlatform
+  rawKeyword     String
+  rawScore       Decimal        @db.Decimal(8, 2)
+  region         String
+  language       String         @default("en")
+  collectedAt    DateTime
+  metadata       Json?
+  ingestionRunId String?
+  keyword        Keyword        @relation(fields: [keywordId], references: [id], onDelete: Cascade)
+  ingestionRun   IngestionRun?  @relation(fields: [ingestionRunId], references: [id], onDelete: SetNull)
+
+  @@index([sourcePlatform, collectedAt])
+}
+
+model ProductRecommendation {
+  id                  String      @id @default(cuid())
+  keywordId           String      @unique
+  recommendedProductType ProductType
+  headline            String
+  targetUsers         String[]
+  mvpFeatures         String[]
+  monetizationModel   String[]
+  risks               String[]
+  differentiation     String
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+  keyword             Keyword     @relation(fields: [keywordId], references: [id], onDelete: Cascade)
+}
+
+model Alert {
+  id          String        @id @default(cuid())
+  userId      String
+  keywordId   String?
+  title       String
+  message     String
+  severity    AlertSeverity
+  isRead      Boolean       @default(false)
+  createdAt   DateTime      @default(now())
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model SavedKeyword {
+  id         String   @id @default(cuid())
+  userId     String
+  keywordId  String
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  keyword    Keyword  @relation(fields: [keywordId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, keywordId])
+}
+
+model IngestionRun {
+  id               String            @id @default(cuid())
+  sourcePlatform   SourcePlatform
+  status           IngestionStatus
+  startedAt        DateTime
+  finishedAt       DateTime?
+  recordsCollected Int               @default(0)
+  recordsAccepted  Int               @default(0)
+  errorMessage     String?
+  metadata         Json?
+  sourceEvents     KeywordSourceEvent[]
+
+  @@index([sourcePlatform, startedAt])
+}

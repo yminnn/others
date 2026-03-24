@@ -1,0 +1,6 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>未找到关键词</h2>
+<p>你访问的关键词不存在或已被移除。</p>
+<a href="{{ url_for('keywords') }}">返回关键词列表</a>
+{% endblock %}
