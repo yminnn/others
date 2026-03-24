@@ -1,0 +1,7 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Alerts</h2>
+<div class="panel">
+  <ul>{% for row in rows %}<li>[{{ row.severity }}] {{ row.title }} - {{ row.message }} ({{ row.created_at }})</li>{% endfor %}</ul>
+</div>
+{% endblock %}
