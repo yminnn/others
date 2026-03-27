@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Settings</h2>
+<div class="panel">
+  <button id="ingestBtn">运行 mock ingestion</button>
+  <pre id="ingestOut"></pre>
+</div>
+<div class="grid-two">
+  <div class="panel">
+    <h3>Saved keywords</h3>
+    <ul>{% for row in saved %}<li>{{ row.canonical_keyword }} ({{ row.opportunity_score }})</li>{% endfor %}</ul>
+  </div>
+  <div class="panel">
+    <h3>Recent ingestion runs</h3>
+    <ul>{% for row in runs %}<li>{{ row.source_platform }} / {{ row.status }} / {{ row.records_accepted }} / {{ row.started_at }}</li>{% endfor %}</ul>
+  </div>
+</div>
+<script>
+document.getElementById('ingestBtn').addEventListener('click', async () => {
+  const res = await fetch("{{ url_for('ingest_mock') }}", { method: 'POST' });
+  const data = await res.json();
+  document.getElementById('ingestOut').textContent = JSON.stringify(data, null, 2);
+});
+</script>
+{% endblock %}

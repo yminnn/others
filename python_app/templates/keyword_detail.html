@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>{{ keyword.canonical_keyword }}</h2>
+<p>{{ keyword.description }}</p>
+
+<div class="cards">
+  <article><h3>Trend</h3><p>{{ keyword.trend_score }}</p></article>
+  <article><h3>Demand</h3><p>{{ keyword.demand_score }}</p></article>
+  <article><h3>Competition</h3><p>{{ keyword.competition_score }}</p></article>
+  <article><h3>Monetization</h3><p>{{ keyword.monetization_score }}</p></article>
+  <article><h3>Opportunity</h3><p>{{ keyword.opportunity_score }}</p></article>
+</div>
+
+<div class="grid-two">
+  <div class="panel">
+    <h3>Variants</h3>
+    <ul>{% for v in variants %}<li>{{ v.variant }} ({{ v.source_platform }})</li>{% endfor %}</ul>
+  </div>
+  <div class="panel">
+    <h3>Source events</h3>
+    <ul>{% for e in events %}<li>{{ e.raw_keyword }} / {{ e.raw_score }} / {{ e.collected_at }}</li>{% endfor %}</ul>
+  </div>
+</div>
+
+<div class="panel">
+  <h3>历史趋势</h3>
+  <canvas id="detailChart" height="90"></canvas>
+</div>
+
+{% if rec %}
+<div class="panel">
+  <h3>产品建议</h3>
+  <p><strong>{{ rec.headline }}</strong></p>
+  <p>目标用户：{{ rec.target_users | join('、') }}</p>
+  <p>MVP 功能：{{ rec.mvp_features | join('、') }}</p>
+  <p>变现：{{ rec.monetization_model | join('、') }}</p>
+  <p>风险：{{ rec.risks | join('、') }}</p>
+  <p>差异化：{{ rec.differentiation }}</p>
+</div>
+{% endif %}
+
+<script>
+const rows = {{ metrics|tojson }};
+new Chart(document.getElementById('detailChart'), {
+  type: 'line',
+  data: {
+    labels: rows.map(r => (r.captured_at || '').slice(0,10)),
+    datasets: [
+      { label: 'Opportunity', data: rows.map(r => r.opportunity_score), borderColor: '#38bdf8' },
+      { label: 'Search Volume', data: rows.map(r => r.search_volume), borderColor: '#f59e0b' }
+    ]
+  }
+});
+</script>
+{% endblock %}
