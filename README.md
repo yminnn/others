@@ -30,12 +30,6 @@ Demo 账号：
 - 邮箱：`founder@opportunityradar.dev`
 - 密码：`ChangeMe123!`
 
-如果你看到“账号或密码错误”：
-
-1. 先执行 `python init_db.py` 重新初始化数据库；
-2. 然后再次使用上面的 Demo 账号登录；
-3. 新版本还会在你使用 Demo 账号首次登录时自动修复账号记录。
-
 ---
 
 ## 2) 页面能力
