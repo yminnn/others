@@ -29,7 +29,7 @@ def seed(conn: sqlite3.Connection) -> None:
         VALUES (?, ?, ?, ?)
         ON CONFLICT(email) DO UPDATE SET password_hash=excluded.password_hash, name=excluded.name
         """,
-        ("founder@opportunityradar.dev", generate_password_hash("ChangeMe123!"), "Demo Founder", now),
+        ("founder@opportunityradar.dev", generate_password_hash("ChangeMe123!", method="pbkdf2:sha256"), "Demo Founder", now),
     )
     user_id = conn.execute("SELECT id FROM users WHERE email=?", ("founder@opportunityradar.dev",)).fetchone()[0]
 
